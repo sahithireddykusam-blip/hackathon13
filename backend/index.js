@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 import { connectDB, isDBConnected, getDatabaseStatus } from './db.js';
 
 import authRoutes from './routes/auth.js';
@@ -41,8 +44,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Root route: Branded Midnight Observatory API Status Dashboard
-app.get('/', (req, res) => {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendDist = path.join(__dirname, '../frontend/dist');
+
+// Serve frontend build if available (Production unified deployment)
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+} else {
+  // Root route: Branded Midnight Observatory API Status Dashboard (Dev mode)
+  app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -181,7 +196,8 @@ app.get('/', (req, res) => {
   </div>
 </body>
 </html>`);
-});
+  });
+}
 
 // Start server
 async function startServer() {

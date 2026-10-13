@@ -108,5 +108,45 @@ Visit **http://localhost:5173** in your browser.
 
 ---
 
+## 🌐 Deploy to Render
+
+You can deploy this full-stack application onto Render in two simple ways:
+
+### Option 1: Automatic Blueprint (Recommended)
+1. Go to **[Render Dashboard](https://dashboard.render.com)** &rarr; Click **New +** &rarr; **Blueprint**.
+2. Connect your GitHub repository: `sahithireddykusam-blip/hackathon13`.
+3. Render will automatically detect `render.yaml`.
+4. Enter your Supabase environment variables when prompted:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `GEMINI_API_KEY` (optional)
+5. Click **Apply**. Render will build and deploy your entire full-stack app on a single live URL!
+
+---
+
+### Option 2: Manual Web Service
+1. In Render Dashboard, click **New +** &rarr; **Web Service**.
+2. Connect `sahithireddykusam-blip/hackathon13`.
+3. Configure the following fields:
+   - **Name**: `researchgenius-ai`
+   - **Region**: Oregon (or closest to you)
+   - **Branch**: `main`
+   - **Root Directory**: *(leave blank / root)*
+   - **Runtime**: `Node`
+   - **Build Command**: `npm run render-build`
+   - **Start Command**: `npm run start`
+   - **Instance Type**: `Free`
+4. Under **Environment Variables**, add:
+   - `NODE_VERSION` = `20.18.0`
+   - `PORT` = `10000`
+   - `JWT_SECRET` = `(any secure random string)`
+   - `SUPABASE_URL` = `https://ftaweirvnhtjbzizbfcp.supabase.co`
+   - `SUPABASE_ANON_KEY` = `(your anon key)`
+   - `SUPABASE_SERVICE_ROLE_KEY` = `(your service role key)`
+5. Click **Create Web Service**.
+
+---
+
 ## 📄 License
 MIT License.
