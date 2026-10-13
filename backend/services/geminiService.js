@@ -14,11 +14,18 @@ if (apiKey) {
   }
 }
 
+const CANDIDATE_MODELS = [
+  'gemini-3.5-flash-lite',
+  'gemini-flash-latest',
+  'gemini-3.8-flash'
+];
+
 export async function generateResearchSynthesis(query, filters = {}) {
   if (genAI) {
-    try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const prompt = `You are ResearchGenius AI, an academic research engine adhering to the "Midnight Observatory" scientific standard.
+    for (const modelName of CANDIDATE_MODELS) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const prompt = `You are ResearchGenius AI, an academic research engine adhering to the "Midnight Observatory" scientific standard.
 Query: "${query}"
 Domain: "${filters.domain || 'All Domains'}"
 
@@ -45,12 +52,15 @@ Analyze real peer-reviewed scientific literature related to this query. Respond 
   "relatedTopics": ["Topic 1", "Topic 2", "Topic 3", "Topic 4"]
 }`;
 
-      const result = await model.generateContent(prompt);
-      const text = result.response.text();
-      const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
-      return JSON.parse(cleaned);
-    } catch (err) {
-      console.warn('Gemini API synthesis failed, falling back to scholarly dataset:', err.message);
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleaned);
+        console.log(`✓ Real-time AI research synthesis generated via ${modelName}`);
+        return parsed;
+      } catch (err) {
+        console.warn(`Model ${modelName} warning:`, err.message);
+      }
     }
   }
 
