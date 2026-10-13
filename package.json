@@ -1,0 +1,11 @@
+{
+  "name": "researchgenius-ai",
+  "version": "1.0.0",
+  "description": "ResearchGenius AI — Discover Knowledge. Connect Ideas.",
+  "scripts": {
+    "frontend": "npm --prefix frontend run dev",
+    "backend": "npm --prefix backend run start",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend run start"
+  }
+}

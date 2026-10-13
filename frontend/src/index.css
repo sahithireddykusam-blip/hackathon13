@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-midnight-navy: #101828;
+  --color-deep-navy: #172235;
+  --color-dark-surface: #1D2939;
+  --color-electric-teal: #36D6C5;
+  --color-warm-amber: #F5B942;
+  
+  --bg-main: #F7F6F2;
+  --bg-card: #FFFFFF;
+  --text-primary: #172033;
+  --text-secondary: #667085;
+  --border-color: #E4E7EC;
+  --muted-surface: #EEF2F5;
+}
+
+.dark {
+  --bg-main: #101828;
+  --bg-card: #172235;
+  --text-primary: #F7F6F2;
+  --text-secondary: #94A3B8;
+  --border-color: #283548;
+  --muted-surface: #1D2939;
+}
+
+@layer base {
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+}
+
+/* Subtle Midnight Observatory Grid Pattern */
+.observatory-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(54, 214, 197, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(54, 214, 197, 0.04) 1px, transparent 1px);
+}
+
+.dark .observatory-grid {
+  background-image: 
+    linear-gradient(to right, rgba(54, 214, 197, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(54, 214, 197, 0.06) 1px, transparent 1px);
+}
+
+/* Star / Node subtle pulse */
+@keyframes nodePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.animate-node-pulse {
+  animation: nodePulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom Scrollbar for Research reading */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(54, 214, 197, 0.5);
+}
+
+/* Editorial Research Typography */
+.editorial-body {
+  line-height: 1.75;
+  font-size: 1.0625rem;
+  color: inherit;
+}
+
+.editorial-body p {
+  margin-bottom: 1.25rem;
+}
+
+.editorial-body h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  font-size: 1.35rem;
+}
+
+.editorial-body h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  font-size: 1.15rem;
+}
