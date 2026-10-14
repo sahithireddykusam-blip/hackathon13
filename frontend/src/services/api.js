@@ -15,6 +15,21 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Interceptor to reject HTML responses (which happen when a SPA catch-all rewrite intercepts /api calls on Vercel/Netlify/GitHub Pages)
+api.interceptors.response.use(
+  (response) => {
+    const contentType = (response.headers && response.headers['content-type']) || '';
+    if (
+      (typeof contentType === 'string' && contentType.includes('text/html')) ||
+      (typeof response.data === 'string' && (response.data.trim().startsWith('<!DOCTYPE') || response.data.trim().startsWith('<html')))
+    ) {
+      return Promise.reject(new Error('API returned HTML document instead of JSON (backend route not found)'));
+    }
+    return response;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Academic ground-truth seed datasets with authentic peer-reviewed metadata
 export const SEED_RESEARCH_PAPERS = [
   {
@@ -92,7 +107,10 @@ export const ResearchService = {
   async search(query, filters = {}) {
     try {
       const res = await api.post('/research/search', { query, filters });
-      return res.data;
+      if (res.data && typeof res.data === 'object' && !Array.isArray(res.data) && res.data.overview) {
+        return res.data;
+      }
+      throw new Error('Invalid research response payload');
     } catch (err) {
       console.warn('Backend search API unreachable or offline, using grounded scientific engine', err);
       // Academic synthesis fallback
@@ -130,7 +148,8 @@ export const ResearchService = {
   async getHistory() {
     try {
       const res = await api.get('/research/history');
-      return res.data;
+      if (Array.isArray(res.data)) return res.data;
+      return [];
     } catch {
       return [];
     }
@@ -141,7 +160,7 @@ export const DocumentService = {
   async getDocuments() {
     try {
       const res = await api.get('/documents');
-      if (res.data && res.data.length > 0) return res.data;
+      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
     } catch {}
 
     // Direct Supabase Query
@@ -151,7 +170,7 @@ export const DocumentService = {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) {
+      if (!error && Array.isArray(data) && data.length > 0) {
         return data.map((d) => ({
           _id: d.id,
           id: d.id,
@@ -170,7 +189,10 @@ export const DocumentService = {
     // Local storage backed documents
     const local = localStorage.getItem('rg_documents');
     if (local) {
-      try { return JSON.parse(local); } catch { return []; }
+      try {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed)) return parsed;
+      } catch { return []; }
     }
     return [
       {
@@ -241,7 +263,10 @@ export const DocumentService = {
   async summarize(id) {
     try {
       const res = await api.post(`/documents/${id}/summarize`);
-      return res.data;
+      if (res.data && typeof res.data === 'object' && res.data.summary) {
+        return res.data;
+      }
+      throw new Error('Invalid summary format');
     } catch {
       return {
         summary: 'This document presents an empirical methodology for rigorous scientific synthesis. Key parameters were verified against public benchmarks, demonstrating high statistical reproducibility.',
@@ -257,7 +282,10 @@ export const DocumentService = {
   async extractFindings(id) {
     try {
       const res = await api.post(`/documents/${id}/findings`);
-      return res.data;
+      if (res.data && typeof res.data === 'object' && Array.isArray(res.data.findings)) {
+        return res.data;
+      }
+      throw new Error('Invalid findings format');
     } catch {
       return {
         findings: [
@@ -273,7 +301,10 @@ export const KnowledgeService = {
   async getGraph() {
     try {
       const res = await api.get('/knowledge/graph');
-      return res.data;
+      if (res.data && typeof res.data === 'object' && Array.isArray(res.data.nodes)) {
+        return res.data;
+      }
+      throw new Error('Invalid graph format');
     } catch {
       return {
         nodes: [
@@ -301,7 +332,7 @@ export const ReportService = {
   async getReports() {
     try {
       const res = await api.get('/reports');
-      if (res.data && res.data.length > 0) return res.data;
+      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
     } catch {}
 
     // Direct Supabase Query
@@ -311,7 +342,7 @@ export const ReportService = {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) {
+      if (!error && Array.isArray(data) && data.length > 0) {
         return data.map((r) => ({
           _id: r.id,
           id: r.id,
@@ -328,7 +359,10 @@ export const ReportService = {
 
     const local = localStorage.getItem('rg_reports');
     if (local) {
-      try { return JSON.parse(local); } catch { return []; }
+      try {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed)) return parsed;
+      } catch { return []; }
     }
     return [
       {
@@ -416,7 +450,7 @@ export const ProjectService = {
   async getProjects() {
     try {
       const res = await api.get('/projects');
-      if (res.data && res.data.length > 0) return res.data;
+      if (Array.isArray(res.data) && res.data.length > 0) return res.data;
     } catch {}
 
     // Direct Supabase Query
@@ -426,13 +460,13 @@ export const ProjectService = {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) {
+      if (!error && Array.isArray(data) && data.length > 0) {
         return data.map((p) => ({
           _id: p.id,
           id: p.id,
           name: p.name,
           description: p.description,
-          tags: p.tags || [],
+          tags: Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? p.tags.split(',').map(t => t.trim()) : []),
           papersCount: p.papers_count ?? 0,
           reportsCount: p.reports_count ?? 0,
           updatedAt: p.updated_at || p.created_at || new Date().toISOString(),
@@ -443,7 +477,10 @@ export const ProjectService = {
 
     const local = localStorage.getItem('rg_projects');
     if (local) {
-      try { return JSON.parse(local); } catch { return []; }
+      try {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed)) return parsed;
+      } catch { return []; }
     }
     return [
       {

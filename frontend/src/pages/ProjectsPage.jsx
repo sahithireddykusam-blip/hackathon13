@@ -31,9 +31,10 @@ export default function ProjectsPage() {
     setLoading(true);
     try {
       const data = await ProjectService.getProjects();
-      setProjects(data || []);
+      setProjects(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -48,13 +49,20 @@ export default function ProjectsPage() {
       .map((t) => t.trim())
       .filter(Boolean);
 
-    const created = await ProjectService.createProject({
-      name: newTitle.trim(),
-      description: newDesc.trim() || 'Academic inquiry workspace.',
-      tags: tagsArray
-    });
+    try {
+      const created = await ProjectService.createProject({
+        name: newTitle.trim(),
+        description: newDesc.trim() || 'Academic inquiry workspace.',
+        tags: tagsArray
+      });
 
-    setProjects((prev) => [created, ...prev]);
+      if (created) {
+        setProjects((prev) => [created, ...(Array.isArray(prev) ? prev : [])]);
+      }
+    } catch (err) {
+      console.error('Failed to create project:', err);
+    }
+
     setIsModalOpen(false);
     setNewTitle('');
     setNewDesc('');
@@ -90,7 +98,7 @@ export default function ProjectsPage() {
         <div className="p-16 rounded-2xl bg-white dark:bg-[#172235] border border-light-border dark:border-[#283548]">
           <BrandLoading label="Retrieving project workspaces..." />
         </div>
-      ) : projects.length === 0 ? (
+      ) : !Array.isArray(projects) || projects.length === 0 ? (
         <EmptyState
           icon={FolderKanban}
           title="No Research Projects"
@@ -100,9 +108,9 @@ export default function ProjectsPage() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects?.map((proj) => (
+          {projects.map((proj) => (
             <div
-              key={proj._id}
+              key={proj._id || proj.id}
               className="p-6 rounded-2xl bg-white dark:bg-[#172235] border border-light-border dark:border-[#283548] hover:border-electric-teal/40 transition-all flex flex-col justify-between shadow-sm"
             >
               <div>
@@ -112,7 +120,7 @@ export default function ProjectsPage() {
                     Active Workspace
                   </span>
                   <span className="font-mono text-[10px] text-light-muted dark:text-slate-400">
-                    Updated {new Date(proj.updatedAt).toLocaleDateString()}
+                    Updated {new Date(proj.updatedAt || proj.createdAt || Date.now()).toLocaleDateString()}
                   </span>
                 </div>
 
@@ -125,7 +133,7 @@ export default function ProjectsPage() {
                 </p>
 
                 {/* Tags */}
-                {proj.tags && (
+                {Array.isArray(proj.tags) && proj.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-5">
                     {proj.tags.map((tag, i) => (
                       <span

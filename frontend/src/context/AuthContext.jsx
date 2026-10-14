@@ -29,7 +29,11 @@ export function AuthProvider({ children }) {
         const res = await axios.get('/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setUser(res.data.user);
+        if (res.data && typeof res.data === 'object' && res.data.user) {
+          setUser(res.data.user);
+        } else {
+          throw new Error('Invalid user payload from auth endpoint');
+        }
       } catch (err) {
         console.warn('Could not verify token with server, using local session', err);
         // Fallback to local user

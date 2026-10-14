@@ -37,11 +37,14 @@ export default function DashboardPage() {
           ProjectService.getProjects(),
           ReportService.getReports()
         ]);
-        setDocuments(docs || []);
-        setProjects(projs || []);
-        setReports(reps || []);
+        setDocuments(Array.isArray(docs) ? docs : []);
+        setProjects(Array.isArray(projs) ? projs : []);
+        setReports(Array.isArray(reps) ? reps : []);
       } catch (err) {
         console.error('Error fetching dashboard records', err);
+        setDocuments([]);
+        setProjects([]);
+        setReports([]);
       } finally {
         setLoading(false);
       }
@@ -165,12 +168,12 @@ export default function DashboardPage() {
                 </h3>
               </div>
               <Link to="/projects" className="text-xs font-mono text-electric-teal hover:underline flex items-center gap-0.5">
-                View all ({projects.length})
+                View all ({Array.isArray(projects) ? projects.length : 0})
                 <ChevronRight className="w-3 h-3" />
               </Link>
             </div>
 
-            {projects.length === 0 ? (
+            {!Array.isArray(projects) || projects.length === 0 ? (
               <p className="font-body text-xs text-light-muted dark:text-slate-400 py-4">
                 No active projects created yet.
               </p>
@@ -178,7 +181,7 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {projects.slice(0, 3).map((proj) => (
                   <Link
-                    key={proj._id}
+                    key={proj._id || proj.id}
                     to="/projects"
                     className="block p-3 rounded-xl bg-light-surface dark:bg-[#1D2939] border border-light-border dark:border-[#283548] hover:border-electric-teal/40 transition-colors"
                   >
@@ -186,9 +189,9 @@ export default function DashboardPage() {
                       {proj.name}
                     </h4>
                     <div className="flex items-center gap-3 mt-1.5 font-mono text-[10px] text-light-muted dark:text-slate-400">
-                      <span>{proj.papersCount} papers</span>
+                      <span>{proj.papersCount ?? 0} papers</span>
                       <span>•</span>
-                      <span>{proj.reportsCount} reports</span>
+                      <span>{proj.reportsCount ?? 0} reports</span>
                     </div>
                   </Link>
                 ))}
@@ -216,12 +219,12 @@ export default function DashboardPage() {
                 </h3>
               </div>
               <Link to="/documents" className="text-xs font-mono text-warm-amber hover:underline flex items-center gap-0.5">
-                Manage ({documents.length})
+                Manage ({Array.isArray(documents) ? documents.length : 0})
                 <ChevronRight className="w-3 h-3" />
               </Link>
             </div>
 
-            {documents.length === 0 ? (
+            {!Array.isArray(documents) || documents.length === 0 ? (
               <p className="font-body text-xs text-light-muted dark:text-slate-400 py-4">
                 No papers uploaded yet. Drag & drop research PDFs in the Document Library.
               </p>
@@ -229,7 +232,7 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {documents.slice(0, 3).map((doc) => (
                   <Link
-                    key={doc._id}
+                    key={doc._id || doc.id}
                     to="/documents"
                     className="block p-3 rounded-xl bg-light-surface dark:bg-[#1D2939] border border-light-border dark:border-[#283548] hover:border-warm-amber/40 transition-colors"
                   >
@@ -242,7 +245,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2 mt-1.5 font-mono text-[10px] text-light-muted dark:text-slate-400">
-                      <span>{(doc.size / (1024 * 1024)).toFixed(1)} MB</span>
+                      <span>{((doc.size || 0) / (1024 * 1024)).toFixed(1)} MB</span>
                       <span>•</span>
                       <span>{doc.pages || 12} pgs</span>
                     </div>
@@ -272,12 +275,12 @@ export default function DashboardPage() {
                 </h3>
               </div>
               <Link to="/reports" className="text-xs font-mono text-electric-teal hover:underline flex items-center gap-0.5">
-                All Reports ({reports.length})
+                All Reports ({Array.isArray(reports) ? reports.length : 0})
                 <ChevronRight className="w-3 h-3" />
               </Link>
             </div>
 
-            {reports.length === 0 ? (
+            {!Array.isArray(reports) || reports.length === 0 ? (
               <p className="font-body text-xs text-light-muted dark:text-slate-400 py-4">
                 No synthesized reports created yet.
               </p>
@@ -285,7 +288,7 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {reports.slice(0, 3).map((rep) => (
                   <Link
-                    key={rep._id}
+                    key={rep._id || rep.id}
                     to="/reports"
                     className="block p-3 rounded-xl bg-light-surface dark:bg-[#1D2939] border border-light-border dark:border-[#283548] hover:border-electric-teal/40 transition-colors"
                   >

@@ -32,12 +32,14 @@ export default function ReportsPage() {
     setLoading(true);
     try {
       const data = await ReportService.getReports();
-      setReports(data || []);
-      if (data?.length > 0) {
-        setActiveReport(data[0]);
+      const list = Array.isArray(data) ? data : [];
+      setReports(list);
+      if (list.length > 0) {
+        setActiveReport(list[0]);
       }
     } catch (err) {
       console.error('Error fetching reports', err);
+      setReports([]);
     } finally {
       setLoading(false);
     }
@@ -221,7 +223,7 @@ ${c.references?.map((r, i) => `  [${i + 1}] ${r}`).join('\n')}
         <div className="p-16 rounded-2xl bg-white dark:bg-[#172235] border border-light-border dark:border-[#283548]">
           <BrandLoading label="Retrieving synthesized editorial reports..." />
         </div>
-      ) : reports.length === 0 ? (
+      ) : !Array.isArray(reports) || reports.length === 0 ? (
         <EmptyState
           icon={ScrollText}
           title="No Reports Synthesized"
@@ -235,15 +237,15 @@ ${c.references?.map((r, i) => `  [${i + 1}] ${r}`).join('\n')}
           <div className="lg:col-span-3 space-y-4">
             <div className="p-4 rounded-2xl bg-white dark:bg-[#172235] border border-light-border dark:border-[#283548] shadow-sm">
               <h3 className="font-heading font-semibold text-xs uppercase tracking-wider text-light-muted dark:text-slate-400 mb-3">
-                Saved Reports ({reports.length})
+                Saved Reports ({Array.isArray(reports) ? reports.length : 0})
               </h3>
               <div className="space-y-2">
-                {reports.map((rep) => (
+                {Array.isArray(reports) && reports.map((rep) => (
                   <button
-                    key={rep._id}
+                    key={rep._id || rep.id}
                     onClick={() => setActiveReport(rep)}
                     className={`w-full text-left p-3 rounded-xl transition-all ${
-                      activeReport?._id === rep._id
+                      (activeReport?._id || activeReport?.id) === (rep._id || rep.id)
                         ? 'bg-light-surface dark:bg-[#1D2939] border border-electric-teal/50 shadow-sm'
                         : 'border border-transparent hover:bg-light-surface/60 dark:hover:bg-[#1D2939]/60'
                     }`}
@@ -252,9 +254,9 @@ ${c.references?.map((r, i) => `  [${i + 1}] ${r}`).join('\n')}
                       {rep.title}
                     </h4>
                     <div className="flex items-center justify-between font-mono text-[10px] text-light-muted dark:text-slate-400 mt-2">
-                      <span>{new Date(rep.createdAt).toLocaleDateString()}</span>
+                      <span>{new Date(rep.createdAt || Date.now()).toLocaleDateString()}</span>
                       <span className="text-electric-teal">
-                        {activeReport?._id === rep._id ? 'Active' : ''}
+                        {(activeReport?._id || activeReport?.id) === (rep._id || rep.id) ? 'Active' : ''}
                       </span>
                     </div>
                   </button>

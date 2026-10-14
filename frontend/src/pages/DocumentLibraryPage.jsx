@@ -45,12 +45,13 @@ export default function DocumentLibraryPage() {
   }, []);
 
   const loadDocs = async () => {
-    setLoading(false);
+    setLoading(true);
     try {
       const docs = await DocumentService.getDocuments();
-      setDocuments(docs || []);
+      setDocuments(Array.isArray(docs) ? docs : []);
     } catch (err) {
       console.error('Error loading documents', err);
+      setDocuments([]);
     } finally {
       setLoading(false);
     }
@@ -153,8 +154,9 @@ export default function DocumentLibraryPage() {
     ]);
   };
 
-  const filteredDocs = documents.filter((d) =>
-    d.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const safeDocs = Array.isArray(documents) ? documents : [];
+  const filteredDocs = safeDocs.filter((d) =>
+    (d.name || '').toLowerCase().includes((searchTerm || '').toLowerCase())
   );
 
   return (
@@ -247,7 +249,7 @@ export default function DocumentLibraryPage() {
       </div>
 
       {/* Document Cards or Empty State */}
-      {documents.length === 0 ? (
+      {!Array.isArray(documents) || documents.length === 0 ? (
         <EmptyState
           icon={FileText}
           title="No research documents yet"
@@ -259,7 +261,7 @@ export default function DocumentLibraryPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredDocs.map((doc) => (
             <div
-              key={doc._id}
+              key={doc._id || doc.id}
               className="p-5 rounded-2xl bg-white dark:bg-[#172235] border border-light-border dark:border-[#283548] hover:border-electric-teal/40 transition-all flex flex-col justify-between shadow-sm"
             >
               <div>
